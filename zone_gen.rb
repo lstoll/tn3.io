@@ -1,3 +1,14 @@
+require 'dnsimple'
+
+unless (dns_username = ENV['DNSIMPLE_USERNAME']) && (dns_token = ENV['DNSIMPLE_TOKEN'])
+  raise "set DNSIMPLE_USERNAME and DNSIMPLE_TOKEN"
+end
+
+puts dns_username
+puts dns_token
+
+client = Dnsimple::Client.new(username: dns_username, api_token: dns_token)
+
 def in_words(int)
   numbers_to_name = {
       1000000 => "million",
@@ -92,5 +103,9 @@ records = {}
   records["203.0.113.#{num}"] = record
 end
 
-require 'pp'
-pp records
+records.each do |ip,names|
+  names.each do |name|
+    record = client.domains.create_record("tn3.io", record_type: "A", name: name, content: ip, ttl: 86400)
+    puts "Record: %s (id: %d)" % [record.name, record.id]
+  end
+end
